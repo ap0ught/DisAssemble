@@ -155,6 +155,88 @@ DisAssemble/
 - **.nl**: Namelist files for different memory banks
 - **.cdl**: FCEUX code/data logging files
 
+## Battletoads Game Genie Codes
+
+As part of the comprehensive reverse engineering documentation, this repository includes a reference for Battletoads Game Genie codes. These codes provide valuable insights into game mechanics, memory addresses, and behavioral modifications that complement the disassembly analysis.
+
+**Reference Source**: [Battletoads Analysis Video](https://www.youtube.com/watch?v=4AwA90VxgWU)
+
+### Code Reference Image
+
+![Battletoads Game Genie Codes (placeholder)](images/battletoads-game-genie-codes.png)
+
+*Note: Image placeholder - the actual reference image showing all Game Genie codes organized by category should be placed in the `images/` directory.*
+
+### Code Categories and Functions
+
+#### Partial Bypass for Tunnel
+These codes modify the notorious Turbo Tunnel level mechanics:
+
+- **ALEYAUSS** - Relocate Second Speed Limit
+  - Modifies the speed limit positioning in the tunnel sequence
+- **LXEUNAZA** - Ramp Launch Boost  
+  - Enhances the boost received from ramps
+
+#### Score Boost
+Codes that affect the game's scoring system:
+
+- **PAUUEIAA** - 1100 Points
+  - Awards 1100 points for specific actions (useful for testing scoring mechanics)
+- **AAXLXSPA** - Rollover to 0
+  - Causes score to rollover back to zero (demonstrates score overflow behavior)
+
+#### Second Speed Limit Changes
+Fine-tune the speed limits in racing sequences:
+
+- **TAVNIUGA** - Speed Limit: 6
+- **YAVNIUGA** - Speed Limit: 7  
+- **AAVNIUGE** - Speed Limit: 8
+- **PAVNIUGE** - Speed Limit: 9
+- **ZAVNIUGE** - Speed Limit: 10
+- **LAVNIUGE** - Speed Limit: 11
+- **YAVNIUGE** - Speed Limit: 15
+
+#### Misc Fun
+Experimental codes for gameplay modification:
+
+- **GEEZKPZA** - Increase Jump Velocity
+  - Modifies the physics engine to increase jump height/distance
+- **OYNAXVEV** - Reduce Gravity
+  - Alters gravity constants for floating/low-gravity effects
+- **PAVNGUAA** - Early Speed Limit to 1
+  - Sets speed limit to 1 early in the game
+- **YAVNGUAA** - Early Speed Limit to 7
+  - Sets speed limit to 7 early in the game
+
+#### Screen Wrap (broken)
+**Warning**: These codes are known to cause issues:
+
+- **TYEAUNSO** - Uh Oh
+  - Attempts screen wrapping but causes glitches
+- **GGEAVYAO** - Don't Do It  
+  - Another broken screen wrap attempt
+
+### Reverse Engineering Value
+
+These Game Genie codes are particularly valuable for reverse engineering because they:
+
+1. **Reveal Memory Addresses**: Each code targets specific memory locations, helping identify where game variables are stored
+2. **Demonstrate Limits**: Show the boundaries and overflow conditions of game systems
+3. **Expose Mechanics**: Reveal how different game systems (physics, scoring, speed) are implemented
+4. **Aid Testing**: Allow controlled modification of game state for analysis
+5. **Validate Disassembly**: Confirm understanding of code by observing the effects of memory modifications
+
+### Using with Disassembly
+
+When working with the Battletoads disassembly in this repository:
+
+1. **Cross-reference codes** with the assembly source to identify the modified memory locations
+2. **Test modifications** using these codes to verify understanding of game mechanics  
+3. **Document findings** by comparing normal vs. modified behavior
+4. **Validate patches** by implementing similar changes in the assembly source
+
+These codes serve as a practical bridge between the theoretical disassembly work and hands-on game modification, making them an essential reference for anyone studying the Battletoads codebase.
+
 ## Contributing
 
 This repository welcomes contributions in several areas:
