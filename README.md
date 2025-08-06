@@ -163,7 +163,7 @@ As part of the comprehensive reverse engineering documentation, this repository 
 
 ### Code Reference Image
 
-![Battletoads Game Genie Codes](images/battletoads-game-genie-codes.png)
+![Battletoads Game Genie Codes (placeholder)](images/battletoads-game-genie-codes.png)
 
 *Note: Image placeholder - the actual reference image showing all Game Genie codes organized by category should be placed in the `images/` directory.*
 
