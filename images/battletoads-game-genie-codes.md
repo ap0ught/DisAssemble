@@ -17,3 +17,4 @@ The image should show:
 
 Recommended formats: PNG, JPG
 Filename: battletoads-game-genie-codes.png
+<img width="1772" height="890" alt="image" src="https://github.com/user-attachments/assets/dfebb668-35ab-4288-9ae0-86fa65a2d936" />
