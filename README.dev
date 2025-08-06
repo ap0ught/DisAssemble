@@ -1,0 +1,421 @@
+# DisAssemble Developer Documentation
+
+This document provides detailed information for developers working on NES game disassemblies and contributing to the DisAssemble repository.
+
+## Development Environment Setup
+
+### Required Software
+
+#### Core Tools
+- **IDA Pro** (7.0 or later recommended)
+  - Essential for disassembly analysis and database management
+  - Supports NES ROM formats with included loaders
+  - Required for working with .idb files
+
+- **FCEUX Emulator** (2.1.6 or later)
+  - Used for trace logging and runtime analysis
+  - Generates .cdl (code/data log) files
+  - Essential for understanding program flow
+
+- **ASM6 Assembler**
+  - Included in repository (`asm6.exe`, `asm6_sonder.exe`)
+  - Used for building ROMs from assembly source
+  - Supports NES-specific features and directives
+
+#### Optional but Recommended
+- **Hex Editor** (HxD, 010 Editor, etc.)
+- **Git** for version control
+- **Text Editor** with 6502 assembly syntax highlighting
+- **MESEN Emulator** (alternative debugger with advanced features)
+
+### Environment Configuration
+
+#### IDA Pro Setup
+1. **Install NES loaders**:
+   ```
+   Copy Utils/loaders/*.ldw to IDA_DIR/loaders/
+   ```
+
+2. **Configure IDC scripts**:
+   ```
+   Copy Utils/scripts/*.idc to IDA_DIR/idc/ (optional)
+   ```
+
+3. **Load ROM properly**:
+   - Use "Atari 2600/7800/Lynx/Nintendo NES" processor
+   - Set load address to 0x8000 for PRG-ROM
+   - Configure memory mapping for MMC3 if applicable
+
+#### FCEUX Configuration
+1. **Enable trace logging**:
+   - Help → Message Log → Enable
+   - Tools → Debugger → Trace Logger
+
+2. **Code/Data Logger setup**:
+   - Tools → Debugger → Code/Data Logger
+   - Log to .cdl file for analysis
+
+## Reverse Engineering Workflow
+
+### 1. Initial Analysis
+
+#### ROM Examination
+```bash
+# Examine ROM header and structure
+hexdump -C game.nes | head -20
+
+# Check mapper type and configuration
+fceux --loadlua rom_info.lua game.nes
+```
+
+#### IDA Pro Database Creation
+1. **Load ROM in IDA Pro**:
+   - File → Open → Select NES ROM
+   - Choose appropriate loader (ines.ldw or ines_mmc3_b.ldw)
+   - Set processor to 6502
+   - Configure memory layout
+
+2. **Apply automation scripts**:
+   ```idc
+   // Run NES-specific analysis
+   #include "Utils/scripts/HardwiredBank.idc"
+   #include "Utils/scripts/NesMap.idc"
+   ```
+
+### 2. Code Analysis
+
+#### Memory Mapping
+1. **Identify RAM usage**:
+   - Document zero page variables (0x00-0xFF)
+   - Map stack usage (0x100-0x1FF)
+   - Identify object arrays and structures
+
+2. **Create memory map file**:
+   ```
+   RAM:0000 system_flags
+   RAM:0001 controller_input
+   RAM:0002 frame_counter
+   ...
+   ```
+
+#### Function Identification
+1. **Locate entry points**:
+   - Reset vector (0xFFFC)
+   - NMI handler (0xFFFA)
+   - IRQ handler (0xFFFE)
+
+2. **Trace execution flow**:
+   - Use FCEUX trace logs
+   - Identify main game loop
+   - Map state machines and transitions
+
+### 3. Asset Extraction
+
+#### Graphics Analysis
+1. **Locate CHR-ROM data**:
+   ```bash
+   # Extract CHR data from ROM
+   dd if=game.nes of=chr_data.chr bs=1 skip=16384 count=8192
+   ```
+
+2. **Identify compressed graphics**:
+   - Look for custom compression routines
+   - Use unpacking utilities (bt_unpack_4.exe for .4 format)
+   - Document compression algorithms
+
+#### Level Data Extraction
+1. **Find level pointers**:
+   - Search for data tables with 16-bit addresses
+   - Identify bank switching code for level loading
+
+2. **Extract level format**:
+   ```assembly
+   ; Example level structure
+   level_data:
+       .byte tileset_id
+       .byte music_id
+       .word map_data_ptr
+       .word attribute_ptr
+   ```
+
+### 4. Assembly Source Creation
+
+#### File Organization
+```
+Game/
+├── game.asm              # Main assembly file
+├── data/                 # Game data files
+│   ├── levels.asm        # Level definitions
+│   ├── sprites.asm       # Sprite data
+│   └── text.asm          # Text strings
+├── gfx/                  # Graphics assets
+│   ├── tiles.chr         # Raw graphics
+│   └── *.4               # Compressed graphics
+├── music/                # Audio data
+│   └── music.asm         # Music sequences
+└── build.bat             # Build script
+```
+
+#### Assembly Code Structure
+```assembly
+; Game Name Disassembly
+; Version: 1.0
+; Date: YYYY-MM-DD
+
+; ===== CONSTANTS =====
+SCREEN_WIDTH = $20
+SCREEN_HEIGHT = $1E
+
+; ===== ZERO PAGE VARIABLES =====
+player_x = $10
+player_y = $11
+game_state = $12
+
+; ===== MAIN CODE =====
+.org $8000
+
+reset:
+    sei                    ; Disable interrupts
+    cld                    ; Clear decimal mode
+    ; ... initialization code
+```
+
+## Adding New Games to the Repository
+
+### Directory Structure Convention
+```
+NewGame/
+├── NewGame.asm           # Main assembly source
+├── NewGame.idb           # IDA Pro database
+├── NewGame.map           # Symbol map
+├── build.bat             # Build script
+├── data/                 # Game-specific data
+├── gfx/                  # Graphics files
+└── music/                # Audio files
+```
+
+### Step-by-Step Process
+
+#### 1. Create Project Directory
+```bash
+mkdir NewGame
+cd NewGame
+```
+
+#### 2. Initial ROM Analysis
+1. **Load in IDA Pro**:
+   - Create new database
+   - Apply NES-specific configurations
+   - Save as `NewGame.idb`
+
+2. **Document findings**:
+   - Create memory map in `ram_map.txt`
+   - Document ROM layout
+   - Identify key functions
+
+#### 3. Asset Extraction
+1. **Extract graphics**:
+   ```bash
+   # Extract CHR-ROM if present
+   dd if=newgame.nes of=gfx/tiles.chr bs=1 skip=X count=Y
+   ```
+
+2. **Extract compressed data**:
+   - Identify compression format
+   - Create unpacking utilities if needed
+   - Document extraction process
+
+#### 4. Create Assembly Source
+1. **Start with skeleton**:
+   ```assembly
+   ; NewGame Disassembly
+   
+   .include "constants.asm"
+   .include "variables.asm"
+   .include "macros.asm"
+   
+   .org $8000
+   ; Main code here
+   ```
+
+2. **Implement sections incrementally**:
+   - Reset handler
+   - NMI/IRQ handlers
+   - Main game loop
+   - Supporting functions
+
+#### 5. Build System Setup
+```batch
+@echo off
+asm6.exe NewGame.asm
+if errorlevel 1 goto error
+del NewGame.nes
+ren NewGame.bin NewGame.nes
+echo Build successful!
+pause
+goto end
+
+:error
+echo Build failed!
+pause
+
+:end
+```
+
+### Quality Standards
+
+#### Code Documentation
+- **Comment every function** with purpose and parameters
+- **Document data structures** with field descriptions
+- **Explain complex algorithms** step by step
+- **Use meaningful symbol names**
+
+#### Assembly Style
+```assembly
+; Function: update_player_position
+; Purpose: Updates player X/Y coordinates based on input
+; Input: A = movement flags
+; Output: Updates player_x, player_y
+; Modifies: A, X, Y
+update_player_position:
+    pha                    ; Save movement flags
+    
+    ; Check right movement
+    and #INPUT_RIGHT
+    beq @check_left        ; Branch if not pressed
+    
+    inc player_x           ; Move right
+    
+@check_left:
+    pla                    ; Restore flags
+    and #INPUT_LEFT
+    beq @check_up
+    
+    dec player_x           ; Move left
+    ; ... continue for other directions
+    
+    rts
+```
+
+#### Testing and Validation
+1. **Verify ROM builds correctly**:
+   ```bash
+   # Compare checksums
+   md5sum original.nes
+   md5sum rebuilt.nes
+   ```
+
+2. **Test in emulator**:
+   - Verify gameplay functionality
+   - Check for visual/audio differences
+   - Test edge cases and corner cases
+
+3. **Cross-reference with original**:
+   - Compare disassembly with IDA analysis
+   - Verify symbol locations
+   - Check data accuracy
+
+## File Naming Conventions
+
+### Assembly Files
+- **Main source**: `GameName.asm`
+- **Data files**: `data/category.asm` (e.g., `data/levels.asm`)
+- **Include files**: Use `.inc` extension for shared code
+
+### Binary Data
+- **Graphics**: `.chr` for raw, `.4` for compressed, `.bin` for maps
+- **Music**: `.asm` for sequences, `.bin` for raw data
+- **Levels**: `level_N_component.bin` (e.g., `level_1_map.bin`)
+
+### Documentation
+- **Memory maps**: `ram_map.txt`
+- **Notes**: `notes.txt` or `analysis.md`
+- **Build logs**: `build.log`
+
+## IDA Pro Integration
+
+### Custom Scripts Usage
+
+#### Memory Mapping with NesMap.idc
+```idc
+// Load FCEUX trace log
+static main() {
+    auto filename = AskFile(0, "*.cdl", "Select CDL file");
+    // Script automatically maps executed code
+}
+```
+
+#### Bank Analysis with HardwiredBank.idc
+```idc
+// Analyze fixed bank (last 16KB)
+static main() {
+    auto start = 0xC000;
+    auto end = 0xFFFF;
+    // Automated function identification
+}
+```
+
+### Database Management
+1. **Regular backups**:
+   ```bash
+   cp GameName.idb GameName_backup_$(date +%Y%m%d).idb
+   ```
+
+2. **Version control integration**:
+   - Add `.idb` files to repository
+   - Document major analysis milestones
+   - Use branches for experimental analysis
+
+## Troubleshooting Common Issues
+
+### Build Errors
+- **Assembler errors**: Check syntax and symbol definitions
+- **Size mismatches**: Verify data alignment and padding
+- **Missing files**: Ensure all include files are present
+
+### IDA Pro Issues
+- **Load failures**: Check loader compatibility and ROM format
+- **Symbol conflicts**: Use unique prefixes for different modules
+- **Memory layout**: Verify MMC configuration for banked ROMs
+
+### Emulation Differences
+- **Timing issues**: Check for cycle-accurate behavior
+- **Hardware quirks**: Document mapper-specific behaviors
+- **Audio problems**: Verify sound register sequences
+
+## Contributing Guidelines
+
+### Code Contributions
+1. **Follow existing conventions** in similar games
+2. **Test thoroughly** before submitting
+3. **Document changes** with clear commit messages
+4. **Provide test cases** for complex modifications
+
+### New Game Submissions
+1. **Complete disassembly** with buildable source
+2. **Comprehensive documentation** including memory maps
+3. **Asset extraction** with proper organization
+4. **Build verification** with checksum matching
+
+### Tool Improvements
+1. **Cross-platform compatibility** when possible
+2. **Clear documentation** for usage
+3. **Error handling** for invalid inputs
+4. **Integration** with existing workflow
+
+## Resources and References
+
+### Technical Documentation
+- **6502 Instruction Set**: Reference for assembly programming
+- **NES Programming**: Hardware documentation and constraints
+- **Mapper Documentation**: MMC behavior and programming
+
+### Community Resources
+- **NESDev Wiki**: Comprehensive NES development information
+- **Assembly tutorials**: Learning 6502 programming
+- **Emulator documentation**: Understanding emulation accuracy
+
+### Tools and Utilities
+- **ROM analysis tools**: Additional utilities for examination
+- **Graphics editors**: Tools for viewing and editing CHR data
+- **Music tools**: Utilities for audio analysis and playback
